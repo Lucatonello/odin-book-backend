@@ -1,10 +1,96 @@
 const authQueries = require('../db/authQueries.js')
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const upload = multer();
+const db = require('../db/pool');
+
+
+//jwt setup
+function verifyToken(req, res, next) {
+    const bearerHeader = req.headers['authorization'];
+
+    if (typeof bearerHeader !== 'undefined') {
+        const bearer = bearerHeader.split(' ');
+        const bearerToken = bearer[1];
+        req.token = bearerToken;
+        
+        jwt.verify(bearerToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) {
+                return res.sendStatus(403);
+            }
+            req.user = user;
+            next();
+        });
+    } else {
+        return res.status(403).send('Forbidden');
+    }
+}
 
 exports.login = async (req, res) => {
-    
+    const type = req.body.type;
+
+    if (type === 'user') {
+        const { username, password } = req.body;
+        try {
+            const result = await db.query(`SELECT * FROM users WHERE username = $1`, [username]);
+
+            if (result.rows.length === 0) {
+                return res.status(500).json({ message: 'Username does not match' });
+            };
+            const user = result.rows[0];
+
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return res.status(500).json({ message: 'Password does not matach' });
+            }
+
+            jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, (err, token) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).send('error with JWT');
+                }
+                res.json({
+                    token: token,
+                    userid: user.id,
+                    username: username
+                });
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'error during login' });
+        }
+    } else if (type === 'company') {
+        const {companyName, companyPassword} = req.body;
+        try {
+            const result = await db.query(`SELECT * FROM companies WHERE name = $1`, [companyName]);
+
+            if (result.rows.length === 0) {
+                return res.status(500).json({ message: 'Name does not match' });
+            }
+            const company = result.rows[0];
+
+            const isMatch = bcrypt.compare(companyPassword, company.password);
+            if (!isMatch) {
+                return res.status(500).json({ message: 'Password does not matach' });
+            }
+
+            jwt.sign({ id: company.id, username: company.name }, process.env.JWT_SECRET, (err, token) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).send('error with JWT');
+                }
+                res.json({
+                    token: token,
+                    userid: company.id,
+                    username: companyName
+                });
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'error during login' });
+        }
+    }
 }
 
 exports.signup = [
