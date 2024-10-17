@@ -102,6 +102,38 @@ const postsController = {
             }
         }
     },
+    newPost: async (req, res) => {
+        const {newPost, id, type} = req.body;
+
+        // let day = date.getDate()
+        // let month = date.getMonth() + 1
+        // let year = date.getFullYear()
+        // let fullDate = `${month}-${day}-${year}`
+
+        if (type == 'user') {
+            try {
+                await db.query(`
+                    INSERT INTO posts
+                    (text, authorid)
+                    VALUES ($1, $2)
+                `, [newPost, id]);
+            } catch (err) {
+                console.error(err);
+                res.stats(500).send('error adding post to the db')
+            }
+        } else if (type == 'company') {
+            try {
+                await db.query(`
+                    INSERT INTO posts
+                    (text, companyid)
+                    VALUES ($1, $2)
+                `, [newPost, id])
+            } catch (err) {
+                console.error(err);
+                res.stats(500).send('error adding post to the db')
+            }   
+        } 
+    }
 };
 
 module.exports = { postsController };
