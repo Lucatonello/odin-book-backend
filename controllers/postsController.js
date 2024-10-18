@@ -48,32 +48,23 @@ const postsController = {
         }
     },
     addOneLike: async (req, res) => {
-        const id = req.body.id;
-        const postid = req.body.postid;
-        const type = req.body.type;
+        let {id, postid, type} = req.body;
 
-        if (type == 'user') {
-            try {
-                await db.query(`
-                    INSERT INTO likes
-                    (authorid, postid)
-                    VALUES ($1, $2)
-                `, [id, postid]);
-            } catch (err) {
-                console.error(err);
-                res.status(500).send('error adding like');
-            }
-        } else if (type == 'company') {
-            try {
-                await db.query(`
-                    INSERT INTO likes
-                    (companyid, postid)
-                    VALUES ($1, $2)
-                `, [id, postid]);
-            } catch (err) {
-                console.error(err);
-                res.status(500).send('error adding like');
-            }
+        let idColumn = type == 'user' ? 'authorid' : type =='company' ? 'companyid' : null;
+        
+        if (!idColumn) {
+            return res.status(400).send('Invalid type');
+        }
+
+        try {
+            await db.query(`
+                INSERT INTO likes
+                (${idColumn}, postid)
+                VALUES ($1, $2)
+            `, [id, postid]);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error adding like');
         }
     },
     addComment: async (req, res) => {
@@ -82,8 +73,8 @@ const postsController = {
             try {
                 await db.query(`
                     INSERT INTO comments
-                    (text, authorid, postid)
-                    VALUES ($1, $2, $3)
+                    (text, authorid, companyid, postid)
+                    VALUES ($1, $2, NULL, $3)
                 `, [newComment, id, postid])
             } catch (err) {
                 console.error(err);
@@ -93,8 +84,8 @@ const postsController = {
             try {
                 await db.query(`
                     INSERT INTO comments
-                    (text, companyid, postid)
-                    VALUES ($1, $2, $3)
+                    (text, authorid companyid, postid)
+                    VALUES ($1, NULL, $2, $3)
                 `, [newComment, id, postid])
             } catch (err) {
                 console.error(err);
