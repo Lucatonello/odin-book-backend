@@ -5,5 +5,6 @@ const { membersController } = require('../controllers/membersController');
 membersRouter.get('/:action(getUserData|getCompanyData)/:type/:id', membersController.getUserData);
 membersRouter.get('/getMemberActivity/:type/:id', membersController.getMemberActivity);
 membersRouter.get('/getUserExperience/:id', membersController.getUserExperience);
+membersRouter.get('/getUserEducation/:id', membersController.getUserEducation);
 
 module.exports = { membersRouter };
