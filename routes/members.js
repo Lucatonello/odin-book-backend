@@ -6,5 +6,6 @@ membersRouter.get('/:action(getUserData|getCompanyData)/:type/:id', membersContr
 membersRouter.get('/getMemberActivity/:type/:id', membersController.getMemberActivity);
 membersRouter.get('/getUserExperience/:id', membersController.getUserExperience);
 membersRouter.get('/getUserEducation/:id', membersController.getUserEducation);
+membersRouter.get('/getUserSkills/:id', membersController.getUserSkills);
 
 module.exports = { membersRouter };

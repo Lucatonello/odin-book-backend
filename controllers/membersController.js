@@ -76,6 +76,22 @@ const membersController = {
             console.error(err)
             res.status(500).send('Error receiving education data');
         }
+    },
+    getUserSkills: async (req, res) => {
+        const id = req.params.id;
+
+        try {
+            const result = await db.query(`
+                SELECT *
+                FROM skills
+                WHERE userid = $1
+            `, [id]);
+
+            res.json(result.rows);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error receiving skills data');
+        }
     }
 };
 
