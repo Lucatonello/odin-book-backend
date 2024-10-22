@@ -92,6 +92,35 @@ const membersController = {
             console.error(err);
             res.status(500).send('Error receiving skills data');
         }
+    },
+    updateUserIntro: async (req, res) => {
+        const id = req.params.userid;
+        const { username, summary, location, website } = req.body;
+
+        let query = 'UPDATE users SET';
+        const fields = [];
+        const values = [];
+
+        Object.keys(req.body).forEach((key) => {
+            fields.push(`${key} = $${fields.length + 1}`);
+            values.push(req.body[key]);
+        });
+        const formatedFields = fields.join(', ')
+        const formatedValues = "'" + values.join("', '") + "'";
+        console.log('FIELDS', formatedFields);
+        console.log('VALUES', formatedValues);
+
+        try {
+            await db.query(`
+                ${query}
+                ${formatedFields}
+                WHERE id = $${fields.length + 1}               
+            `, [...values, id]);
+
+            res.json({ message: 'updated succesfully' });
+        } catch (err) {
+            console.error(err);
+        }
     }
 };
 

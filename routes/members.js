@@ -7,5 +7,6 @@ membersRouter.get('/getMemberActivity/:type/:id', membersController.getMemberAct
 membersRouter.get('/getUserExperience/:id', membersController.getUserExperience);
 membersRouter.get('/getUserEducation/:id', membersController.getUserEducation);
 membersRouter.get('/getUserSkills/:id', membersController.getUserSkills);
+membersRouter.put('/updateUserIntro/:userid', membersController.updateUserIntro);
 
 module.exports = { membersRouter };
