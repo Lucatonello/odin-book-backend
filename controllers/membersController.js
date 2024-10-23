@@ -101,14 +101,12 @@ const membersController = {
         const fields = [];
         const values = [];
 
+        //placeholder
         Object.keys(req.body).forEach((key) => {
             fields.push(`${key} = $${fields.length + 1}`);
             values.push(req.body[key]);
         });
         const formatedFields = fields.join(', ')
-        const formatedValues = "'" + values.join("', '") + "'";
-        console.log('FIELDS', formatedFields);
-        console.log('VALUES', formatedValues);
 
         try {
             await db.query(`
@@ -150,6 +148,8 @@ const membersController = {
             location,
             startMonth,
             startYear,
+            endMonth,
+            endYear,
             title
         } = req.body;
 
@@ -177,6 +177,44 @@ const membersController = {
         } catch (err) {
             console.error(err);
             res.status(500).send('Error inserting experience to the database');
+        }
+    },
+    editExperience: async (req, res) => {
+        const id = req.params.userid; 
+        const {
+            companyName,
+            description,
+            employmentType,
+            isActive,
+            location,
+            startMonth,
+            startYear,
+            endMonth,
+            endYear,
+            title
+        } = req.body;
+
+        const querytop = 'UPDATE experience SET'
+        const fields = [];
+        const values = [];
+
+        //placeholder
+        Object.keys(req.body).forEach((key) => {
+            fields.push(`${key} = $${fields.length + 1}`)
+            values.push(req.body[key]);
+        });
+        const formatedFields = fields.join(', ')
+
+        try {
+            await db.query(`
+                ${querytop}
+                ${formatedFields}
+                WHERE id = $${fields.length + 1}
+
+            `, [...values, id])
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error updating experience database');
         }
     }
 };

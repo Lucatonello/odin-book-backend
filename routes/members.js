@@ -10,5 +10,6 @@ membersRouter.get('/getUserSkills/:id', membersController.getUserSkills);
 membersRouter.put('/updateUserIntro/:userid', membersController.updateUserIntro);
 membersRouter.put('/updateUserAbout/:userid', membersController.updateUserAbout);
 membersRouter.post('/newExperience/:userid', membersController.newExperience);
+membersRouter.put('/editExperience/:userid', membersController.editExperience);
 
 module.exports = { membersRouter };
