@@ -120,6 +120,63 @@ const membersController = {
             res.json({ message: 'updated succesfully' });
         } catch (err) {
             console.error(err);
+            res.status(500).send('Error updating intro')
+        }
+    },
+    updateUserAbout: async (req, res) => {
+        const id = req.params.userid;
+        const newAbout = req.body.newAbout;
+        console.log(newAbout, id);
+        try {
+            await db.query(`
+                UPDATE users 
+                SET about = $1
+                WHERE id = $2
+            `, [newAbout, id]);
+
+            res.json({ message: 'About updated succesfully'})
+        } catch (err) {
+            console.erro(err)
+            res.status(500).send('Error updating about')
+        }
+    },
+    newExperience: async (req, res) => {
+        const id = req.params.userid;
+        const {
+            companyName,
+            description,
+            employmentType,
+            isActive,
+            location,
+            startMonth,
+            startYear,
+            title
+        } = req.body;
+
+        const query = 'INSERT INTO experience';
+        const fields = [];
+        const values = [];
+
+        Object.keys(req.body).forEach((key) => {
+            fields.push(key);
+            values.push(req.body[key]);
+        });
+
+        fields.unshift('userid');
+        values.unshift(id)
+
+        values.toString()
+        const formatedValues = "'" + values.join("', '") + "'";
+
+        try {
+            await db.query(`
+                ${query}
+                (${fields.toString()})
+                VALUES (${formatedValues})
+            `);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error inserting experience to the database');
         }
     }
 };

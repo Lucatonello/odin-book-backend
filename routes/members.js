@@ -8,5 +8,7 @@ membersRouter.get('/getUserExperience/:id', membersController.getUserExperience)
 membersRouter.get('/getUserEducation/:id', membersController.getUserEducation);
 membersRouter.get('/getUserSkills/:id', membersController.getUserSkills);
 membersRouter.put('/updateUserIntro/:userid', membersController.updateUserIntro);
+membersRouter.put('/updateUserAbout/:userid', membersController.updateUserAbout);
+membersRouter.post('/newExperience/:userid', membersController.newExperience);
 
 module.exports = { membersRouter };
