@@ -124,7 +124,6 @@ const membersController = {
     updateUserAbout: async (req, res) => {
         const id = req.params.userid;
         const newAbout = req.body.newAbout;
-        console.log(newAbout, id);
         try {
             await db.query(`
                 UPDATE users 
@@ -180,7 +179,7 @@ const membersController = {
         }
     },
     editExperience: async (req, res) => {
-        const id = req.params.userid; 
+        const { userid, expid } = req.params; 
         const {
             companyName,
             description,
@@ -204,14 +203,13 @@ const membersController = {
             values.push(req.body[key]);
         });
         const formatedFields = fields.join(', ')
-
         try {
             await db.query(`
                 ${querytop}
                 ${formatedFields}
-                WHERE id = $${fields.length + 1}
+                WHERE id = ${expid}
 
-            `, [...values, id])
+            `, [...values])
         } catch (err) {
             console.error(err);
             res.status(500).send('Error updating experience database');
