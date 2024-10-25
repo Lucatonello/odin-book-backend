@@ -101,7 +101,6 @@ const membersController = {
         const fields = [];
         const values = [];
 
-        //placeholder
         Object.keys(req.body).forEach((key) => {
             fields.push(`${key} = $${fields.length + 1}`);
             values.push(req.body[key]);
@@ -152,7 +151,7 @@ const membersController = {
             title
         } = req.body;
 
-        const query = 'INSERT INTO experience';
+        const queryTop = 'INSERT INTO experience';
         const fields = [];
         const values = [];
 
@@ -162,14 +161,14 @@ const membersController = {
         });
 
         fields.unshift('userid');
-        values.unshift(id)
+        values.unshift(id);
 
         values.toString()
         const formatedValues = "'" + values.join("', '") + "'";
 
         try {
             await db.query(`
-                ${query}
+                ${queryTop}
                 (${fields.toString()})
                 VALUES (${formatedValues})
             `);
@@ -197,7 +196,6 @@ const membersController = {
         const fields = [];
         const values = [];
 
-        //placeholder
         Object.keys(req.body).forEach((key) => {
             fields.push(`${key} = $${fields.length + 1}`)
             values.push(req.body[key]);
@@ -213,6 +211,91 @@ const membersController = {
         } catch (err) {
             console.error(err);
             res.status(500).send('Error updating experience database');
+        }
+    },
+    deleteExperience: async (req, res) => {
+        const expid = req.params.expid;
+        try {
+            await db.query(`
+                DELETE FROM experience
+                WHERE id = $1
+            `, [expid]);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error deleting experience from database');
+        }
+    },
+    newEducation: async (req, res) => {
+        const userId = req.params.userId;
+        const {
+            school,
+            degree,
+            startMonth,
+            startYear,
+            endMonth,
+            endYear,
+            description
+        } = req.body;
+
+        const queryTop = 'INSERT INTO education';
+        const fields = [];
+        const values = [];
+
+        Object.keys(req.body).forEach((key) => {
+            fields.push(key);
+            values.push(req.body[key]);
+        });
+
+        fields.unshift('userid');
+        values.unshift(userId);
+
+        values.toString()
+        const formatedValues = "'" + values.join("', '") + "'";
+
+        try {
+            await db.query(`
+                ${queryTop}
+                (${fields.toString()})
+                VALUES (${formatedValues})
+            `);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error inserting education to the database');
+        }
+    },
+    editEducation: async (req, res) => {
+        const userid = req.params.userid;
+        const educationid = req.params.educationid;
+
+        let {
+            school,
+            degree,
+            description,
+            startMonth,
+            startYear,
+            endMonth,
+            endYear
+        } = req.body
+
+        const queryTop = 'UPDATE education SET';
+        const fields = [];
+        const values = [];
+
+        Object.keys(req.body).forEach((key) => {
+            fields.push(`${key} = $${fields.length + 1}`);
+            values.push(req.body[key]);
+        });
+        const formatedFields = fields.join(', ')
+
+        try {
+            await db.query(`
+                ${queryTop}
+                ${formatedFields}
+                WHERE id = ${educationid}
+            `, [...values]);
+        } catch(err) {
+            console.error(err);
+            res.staus(500).send('Error updating education database');
         }
     }
 };

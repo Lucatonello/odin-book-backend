@@ -11,5 +11,8 @@ membersRouter.put('/updateUserIntro/:userid', membersController.updateUserIntro)
 membersRouter.put('/updateUserAbout/:userid', membersController.updateUserAbout);
 membersRouter.post('/newExperience/:userid', membersController.newExperience);
 membersRouter.put('/editExperience/:userid/:expid', membersController.editExperience);
+membersRouter.delete('/deleteExperience/:expid', membersController.deleteExperience);
+membersRouter.post('/newEducation/:userId', membersController.newEducation);
+membersRouter.put('/editEducation/:userid/:educationid', membersController.editEducation);
 
 module.exports = { membersRouter };
