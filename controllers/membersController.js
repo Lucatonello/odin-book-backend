@@ -314,7 +314,6 @@ const membersController = {
     newSkill: async (req, res) => {
         const userid = req.params.userid;
         const skill = req.body.skill;
-        console.log(req.body);
 
         try {
             await db.query(`
@@ -325,6 +324,20 @@ const membersController = {
         } catch(err) {
             console.error(err);
             res.status(500).send('Error adding skill to database');
+        }
+    },
+    deleteSkill: async (req, res) => {
+        const skillid = req.params.skillid;
+
+        try {
+            await db.query(`
+                DELETE FROM 
+                skills
+                WHERE id = $1    
+            `, [skillid]);
+        } catch(err) {
+            console.error(err);
+            res.status(500).send('Error deleting skill from database');
         }
     }
 };
