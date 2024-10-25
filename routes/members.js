@@ -14,5 +14,7 @@ membersRouter.put('/editExperience/:userid/:expid', membersController.editExperi
 membersRouter.delete('/deleteExperience/:expid', membersController.deleteExperience);
 membersRouter.post('/newEducation/:userId', membersController.newEducation);
 membersRouter.put('/editEducation/:userid/:educationid', membersController.editEducation);
+membersRouter.delete('/deleteEducation/:educationid', membersController.deleteEducation);
+membersRouter.post('/newSkill/:userid', membersController.newSkill);
 
 module.exports = { membersRouter };

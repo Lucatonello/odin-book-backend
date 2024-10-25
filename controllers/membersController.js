@@ -297,6 +297,35 @@ const membersController = {
             console.error(err);
             res.staus(500).send('Error updating education database');
         }
+    },
+    deleteEducation: async (req, res) => {
+        const educationid = req.params.educationid;
+
+        try {
+            await db.query(`
+                DELETE FROM education
+                WHERE id = $1
+            `, [educationid])
+        } catch(err) {
+            console.error(err);
+            res.status(500).send('Error deleting education from database');
+        }
+    },
+    newSkill: async (req, res) => {
+        const userid = req.params.userid;
+        const skill = req.body.skill;
+        console.log(req.body);
+
+        try {
+            await db.query(`
+                INSERT INTO
+                skills (userid, skill)
+                VALUES ($1, $2)
+            `, [userid, skill]);
+        } catch(err) {
+            console.error(err);
+            res.status(500).send('Error adding skill to database');
+        }
     }
 };
 
