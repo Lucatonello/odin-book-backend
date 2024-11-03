@@ -9,10 +9,12 @@ const membersController = {
             return res.status(400).send('Invalid type');
         }
 
+        const connections = type === 'user' ? 'COALESCE(array_length(connectionids, 1), 0) AS connections_count,' : '';
+
         try {
             const response = await db.query(`
                 SELECT *, 
-                COALESCE(array_length(connectionids, 1), 0) AS connections_count,
+                ${connections}
                 COALESCE(array_length(followerids, 1), 0) AS followers_count
                 FROM ${type}
                 WHERE id = $1
@@ -338,6 +340,22 @@ const membersController = {
         } catch(err) {
             console.error(err);
             res.status(500).send('Error deleting skill from database');
+        }
+    },
+    getCompanyJobOpenings: async (req, res) => {
+        const id = req.params.id;
+
+        try {
+            const result = await db.query(`
+                SELECT *
+                FROM jobs
+                WHERE companyid = $1
+            `, [id]);
+
+            res.json(result.rows);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error geting jobs data');
         }
     }
 };

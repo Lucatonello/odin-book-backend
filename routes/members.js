@@ -17,5 +17,6 @@ membersRouter.put('/editEducation/:userid/:educationid', membersController.editE
 membersRouter.delete('/deleteEducation/:educationid', membersController.deleteEducation);
 membersRouter.post('/newSkill/:userid', membersController.newSkill);
 membersRouter.delete('/deleteSkill/:skillid', membersController.deleteSkill);
+membersRouter.get('/getCompanyJobOpenings/:id', membersController.getCompanyJobOpenings)
 
 module.exports = { membersRouter };

@@ -1,7 +1,7 @@
 const db = require('../db/pool');
 
 const jobsController = {
-    getAllPosts: async (req, res) => {
+    getAllJobs: async (req, res) => {
         try {
             const result = await db.query(`
                 SELECT
