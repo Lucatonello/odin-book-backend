@@ -125,6 +125,7 @@ const membersController = {
     updateUserAbout: async (req, res) => {
         const id = req.params.userid;
         const newAbout = req.body.newAbout;
+
         try {
             await db.query(`
                 UPDATE users 
@@ -135,7 +136,22 @@ const membersController = {
             res.json({ message: 'About updated succesfully'})
         } catch (err) {
             console.erro(err)
-            res.status(500).send('Error updating about')
+            res.status(500).send('Error updating user about')
+        }
+    },
+    updateCompanyAbout: async (req, res) => {
+        const companyid = req.params.companyid;
+        const newAbout = req.body.newAbout;
+
+        try {
+            await db.query(`
+                UPDATE companies 
+                SET about = $1
+                WHERE id = $2
+            `, [newAbout, companyid]);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error updating company about');
         }
     },
     newExperience: async (req, res) => {
@@ -356,6 +372,31 @@ const membersController = {
         } catch (err) {
             console.error(err);
             res.status(500).send('Error geting jobs data');
+        }
+    },
+    updateCompanyIntro: async (req, res) => {
+        const id = req.params.id;
+        const {name, location, website} = req.body;
+
+        const queryTop = 'UPDATE companies SET';
+        const fields = []
+        const values = [];
+
+        Object.keys(req.body).forEach((key) => {
+            fields.push(`${key} = $${fields.length + 1}`);
+            values.push(req.body[key]);
+        });
+        const formatedFields = fields.join(', ')
+
+        try {
+            await db.query(`
+                ${queryTop}
+                ${formatedFields}
+                WHERE id = $${fields.length + 1}         
+            `, [...values, id]);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error updating company intro');
         }
     }
 };

@@ -8,7 +8,7 @@ const postsController = {
                     p.id,
                     p.text AS text,
                     COALESCE(u.username, c.name) AS author_name,
-                    COALESCE(u.summary, c.summary) AS author_summary,
+                    u.summary AS author_summary,
                     p.date AS post_date,
                     COUNT(DISTINCT l.id) AS total_likes,
                     COALESCE(
@@ -16,7 +16,7 @@ const postsController = {
                             SELECT JSON_AGG(
                                 JSON_BUILD_OBJECT(
                                     'authorName', COALESCE(u_comment.username, c_comment.name),
-                                    'authorSummary', COALESCE(u_comment.summary, c_comment.summary),
+                                    'authorSummary', u_comment.summary,
                                     'text', co.text,
                                     'postid', co.postid
                                 )
@@ -37,7 +37,7 @@ const postsController = {
             LEFT JOIN 
                 likes l ON l.postid = p.id
             GROUP BY 
-                p.id, p.text, u.username, c.name, p.date, u.summary, c.summary
+                p.id, p.text, u.username, c.name, p.date, u.summary
             ORDER BY 
                 p.date DESC;
             `);
