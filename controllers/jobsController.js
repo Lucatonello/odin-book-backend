@@ -83,6 +83,22 @@ const jobsController = {
             console.error(err);
             res.status(500).send('Error adding new job to the database');
         }
+    },
+    applyToJob: async (req, res) => {
+        const {jobid, userid} = req.params;
+        const {email, number} = req.body;
+        const cv = req.file
+
+        try {
+            await db.query(`
+                INSERT INTO applicants
+                (jobid, userid, email, number, cv)
+                VALUES ($1, $2, $3, $4, $5)
+            `, [jobid, userid, email, number, cv.filename]);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error adding candidate to the database');
+        }
     }
 }
 
