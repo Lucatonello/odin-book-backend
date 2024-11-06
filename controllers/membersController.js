@@ -398,6 +398,22 @@ const membersController = {
             console.error(err);
             res.status(500).send('Error updating company intro');
         }
+    },
+    changeJobStatus: async (req, res) => {
+        const id = req.params.id;
+        let status = req.body.status;
+
+        status == true ? status = false : status = true;
+        try {
+            await db.query(`
+                UPDATE jobs 
+                SET public = $1
+                WHERE id = $2
+            `, [status, id]);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error changing job status');
+        }
     }
 };
 
