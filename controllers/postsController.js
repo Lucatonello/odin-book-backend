@@ -9,6 +9,13 @@ const postsController = {
                     p.text AS text,
                     COALESCE(u.username, c.name) AS author_name,
                     u.summary AS author_summary,
+                    COALESCE(u.id, c.id) AS author_id,
+                    
+                    CASE 
+                        WHEN u.id IS NOT NULL THEN 'user'
+                        ELSE 'company'
+                    END AS type,   
+
                     p.date AS post_date,
                     COUNT(DISTINCT l.id) AS total_likes,
                     COALESCE(
@@ -37,7 +44,7 @@ const postsController = {
             LEFT JOIN 
                 likes l ON l.postid = p.id
             GROUP BY 
-                p.id, p.text, u.username, c.name, p.date, u.summary
+                p.id, p.text, u.username, c.name, u.id, c.id, p.date, u.summary
             ORDER BY 
                 p.date DESC;
             `);

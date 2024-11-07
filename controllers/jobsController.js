@@ -99,6 +99,26 @@ const jobsController = {
             console.error(err);
             res.status(500).send('Error adding candidate to the database');
         }
+    },
+    getJobApplicants: async (req, res) => {
+        const jobid = req.params.jobid;
+
+        try {
+            const result = await db.query(`
+                SELECT 
+                    a.*,
+                    u.username,
+                    u.summary
+                FROM applicants a
+                JOIN users u ON a.userid = u.id 
+                WHERE jobid = $1
+            `, [jobid]);
+
+            res.json(result.rows)
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error getting job applicants');
+        }
     }
 }
 

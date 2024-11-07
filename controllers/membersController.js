@@ -363,9 +363,11 @@ const membersController = {
 
         try {
             const result = await db.query(`
-                SELECT *
-                FROM jobs
+                SELECT j.*, COUNT(a.id) AS applicant_count
+                FROM jobs j
+                LEFT JOIN applicants a ON j.id = a.jobid
                 WHERE companyid = $1
+                GROUP BY j.id
             `, [id]);
 
             res.json(result.rows);
