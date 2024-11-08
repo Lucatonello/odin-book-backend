@@ -9,15 +9,13 @@ const membersController = {
             return res.status(400).send('Invalid type');
         }
 
-        const connections = type === 'user' ? 'COALESCE(array_length(connectionids, 1), 0) AS connections_count,' : '';
-
         try {
             const response = await db.query(`
-                SELECT *, 
-                ${connections}
-                COALESCE(array_length(followerids, 1), 0) AS followers_count
-                FROM ${type}
-                WHERE id = $1
+                SELECT t.*, COUNT(f.id) AS followers_count
+                FROM ${type} t
+                LEFT JOIN follows f ON t.id = f.receiverid 
+                WHERE t.id = $1
+                GROUP BY t.id
             `, [id]);
 
             res.json(response.rows[0]);
@@ -415,6 +413,55 @@ const membersController = {
         } catch (err) {
             console.error(err);
             res.status(500).send('Error changing job status');
+        }
+    },
+    follow: async (req, res) => {
+        const { userid, receiverid} = req.params;
+        const { userType, type} = req.body;
+
+        try {
+            await db.query(`
+                INSERT INTO follows
+                (giverid, receiverid, givertype, receivertype)
+                VALUES ($1, $2, $3, $4)
+            `, [userid, receiverid, userType, type]);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error adding follow');
+        }
+    },
+    checkFollow: async (req, res) => {
+        const { userid, memberid, usertype, membertype } = req.params;
+
+        try {
+            const result = await db.query(`
+                SELECT *
+                FROM follows
+                WHERE giverid = $1 AND receiverid = $2 AND givertype = $3 AND receivertype = $4
+            `, [userid, memberid, usertype, membertype]);
+
+            if (result.rows.length > 0) {
+                res.json({ isFollowing: true});
+            } else {
+                res.json({ isFollowing: false});
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error checking follow status');
+        }
+    },
+    unfollow: async (req, res) => {
+        const { userid, receiverid} = req.params;
+        const { userType, type} = req.body;
+
+        try {
+            await db.query(`
+                DELETE FROM follows
+                WHERE giverid = $1 AND receiverid = $2 AND givertype = $3 AND receivertype = $4
+            `, [userid, receiverid, userType, type]);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Erro removing follow');
         }
     }
 };

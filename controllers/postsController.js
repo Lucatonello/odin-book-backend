@@ -25,7 +25,12 @@ const postsController = {
                                     'authorName', COALESCE(u_comment.username, c_comment.name),
                                     'authorSummary', u_comment.summary,
                                     'text', co.text,
-                                    'postid', co.postid
+                                    'postid', co.postid,
+                                    'authorid', COALESCE(u_comment.id, c_comment.id),
+                                    'type', CASE 
+                                        WHEN u_comment.id IS NOT NULL THEN 'user'
+                                        ELSE 'company'
+                                    END  
                                 )
                             )
                 FROM comments co

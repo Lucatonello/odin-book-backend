@@ -21,5 +21,8 @@ membersRouter.delete('/deleteSkill/:skillid', membersController.deleteSkill);
 membersRouter.get('/getCompanyJobOpenings/:id', membersController.getCompanyJobOpenings);
 membersRouter.put('/updateCompanyIntro/:id', membersController.updateCompanyIntro);
 membersRouter.put('/changeJobStatus/:id', membersController.changeJobStatus);
+membersRouter.post('/follow/:userid/:receiverid', membersController.follow);
+membersRouter.get('/checkFollow/:userid/:memberid/:usertype/:membertype', membersController.checkFollow);
+membersRouter.post('/unfollow/:userid/:receiverid', membersController.unfollow);
 
 module.exports = { membersRouter };

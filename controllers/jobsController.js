@@ -30,14 +30,19 @@ const jobsController = {
         }
     },
     getJobInfo: async (req, res) => {
-        const id = req.params.id;
+        const companyid = req.params.companyid;
+        const userid = req.params.userid;
+
         try {
             const result = await db.query(`
-                SELECT j.*, c.name
+                SELECT j.*, c.name, COUNT(a.id) AS applicant_count,
+                    EXISTS (SELECT 1 FROM applicants WHERE jobid = $1 AND userid = $2) AS has_applied
                 FROM jobs j
                 JOIN companies c ON j.companyid = c.id
+                LEFT JOIN applicants a ON j.id = a.jobid
                 WHERE j.id = $1
-            `, [id]);
+                GROUP BY j.id, c.name
+            `, [companyid, userid]);
 
             res.json(result.rows);
         } catch (err) {
