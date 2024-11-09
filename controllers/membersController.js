@@ -515,6 +515,27 @@ const membersController = {
             console.error(err);
             res.status(500).send('Error adding connection');
         }
+    },
+    getUserConnections: async (req, res) => {
+        const userid = req.params.userid;
+
+        try {
+            const result = await db.query(`
+                SELECT u.id, u.username, u.summary, u.profilepic
+                FROM connections c
+                JOIN users u 
+                ON  u.id = CASE 
+                             WHEN c.giverid = $1 THEN c.receiverid
+                             WHEN c.receiverid = $1 THEN c.giverid 
+                           END
+                WHERE c.giverid = $1 OR c.receiverid = $1
+            `, [userid]);
+
+            res.json(result.rows);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error getting connections data');
+        }
     }
 };
 
