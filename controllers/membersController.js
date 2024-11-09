@@ -3,25 +3,47 @@ const db = require('../db/pool');
 const membersController = {
     getUserData: async (req, res) => {
         let { id, type } = req.params;
-        type = formatType(type);
+
+
+        try {
+            const result = await db.query(`
+                SELECT u.*, 
+                    COUNT(CASE WHEN f.receivertype = 'user' THEN f.id END) AS followers_count, 
+                    COUNT(DISTINCT c.receiverid) AS connections_count
+                FROM users u
+                LEFT JOIN follows f ON u.id = f.receiverid 
+                LEFT JOIN connections c ON u.id = c.receiverid
+                WHERE u.id = $1
+                GROUP BY u.id
+            `, [id]);
+
+            res.json(result.rows[0]);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error getting user data');
+        }
+    },
+    getCompanyData: async (req, res) => {
+        let { id, type } = req.params;
 
         if (!type) {
             return res.status(400).send('Invalid type');
         }
 
         try {
-            const response = await db.query(`
-                SELECT t.*, COUNT(f.id) AS followers_count
-                FROM ${type} t
-                LEFT JOIN follows f ON t.id = f.receiverid 
-                WHERE t.id = $1
-                GROUP BY t.id
+            const result = await db.query(`
+                SELECT c.*, 
+                    COUNT(CASE WHEN f.receivertype = 'company' THEN f.id END) AS followers_count
+                FROM companies c
+                LEFT JOIN follows f ON c.id = f.receiverid AND f.receivertype = 'company'
+                WHERE c.id = $1
+                GROUP BY c.id
             `, [id]);
 
-            res.json(response.rows[0]);
+            res.json(result.rows[0]);
         } catch (err) {
             console.error(err);
-            res.status(500).send('Error receiving data');
+            res.status(500).send('Error getting company data');
         }
     },
     getMemberActivity: async (req, res) => {
@@ -434,17 +456,28 @@ const membersController = {
         const { userid, memberid, usertype, membertype } = req.params;
 
         try {
-            const result = await db.query(`
+            const resultFollow = await db.query(`
                 SELECT *
                 FROM follows
                 WHERE giverid = $1 AND receiverid = $2 AND givertype = $3 AND receivertype = $4
             `, [userid, memberid, usertype, membertype]);
 
-            if (result.rows.length > 0) {
-                res.json({ isFollowing: true});
+            const resultConnection = await db.query(`
+                SELECT * 
+                FROM connections 
+                WHERE giverid = $1 AND receiverid = $2
+            `, [userid, memberid]);
+
+            if (resultFollow.rows.length > 0 && resultConnection.rows.length > 0) {
+                res.json({ isFollowing: true, isConnected: true });
+            } else if (resultFollow.rows.length > 0) {
+                res.json({ isFollowing: true, isConnected: false });
+            } else if (resultConnection.rows.length > 0) {
+                res.json({ isFollowing: false, isConnected: true });
             } else {
-                res.json({ isFollowing: false});
+                res.json({ isFollowing: false, isConnected: false });
             }
+            
         } catch (err) {
             console.error(err);
             res.status(500).send('Error checking follow status');
@@ -463,12 +496,26 @@ const membersController = {
             console.error(err);
             res.status(500).send('Erro removing follow');
         }
+    },
+    connect: async (req, res) => {
+        const { userid, receiverid} = req.params;
+        const { userType, type} = req.body;
+
+        if (userType == 'company' || type == 'company') {
+            res.json({ message: 'You can not connect with a company'})
+        }
+
+        try {
+            await db.query(`
+                INSERT INTO connections
+                (giverid, receiverid)
+                VALUES ($1, $2)
+            `, [userid, receiverid]);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error adding connection');
+        }
     }
 };
-
-function formatType(type) {
-    type = type == 'user' ? 'users' : type == 'company' ? 'companies' : null;
-    return type;
-}
 
 module.exports = { membersController };

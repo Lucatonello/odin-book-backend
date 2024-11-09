@@ -2,7 +2,8 @@ const express = require('express');
 const membersRouter = express.Router();
 const { membersController } = require('../controllers/membersController'); 
 
-membersRouter.get('/:action(getUserData|getCompanyData)/:type/:id', membersController.getUserData);
+membersRouter.get('/getUserData/:type/:id', membersController.getUserData);
+membersRouter.get('/getCompanyData/:type/:id', membersController.getCompanyData);
 membersRouter.get('/getMemberActivity/:type/:id', membersController.getMemberActivity);
 membersRouter.get('/getUserExperience/:id', membersController.getUserExperience);
 membersRouter.get('/getUserEducation/:id', membersController.getUserEducation);
@@ -24,5 +25,6 @@ membersRouter.put('/changeJobStatus/:id', membersController.changeJobStatus);
 membersRouter.post('/follow/:userid/:receiverid', membersController.follow);
 membersRouter.get('/checkFollow/:userid/:memberid/:usertype/:membertype', membersController.checkFollow);
 membersRouter.post('/unfollow/:userid/:receiverid', membersController.unfollow);
+membersRouter.post('/connect/:userid/:receiverid', membersController.connect);
 
 module.exports = { membersRouter };
