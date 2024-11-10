@@ -511,6 +511,8 @@ const membersController = {
                 (giverid, receiverid)
                 VALUES ($1, $2)
             `, [userid, receiverid]);
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error adding connection');
@@ -551,6 +553,25 @@ const membersController = {
         } catch (err) {
             console.error(err);
             res.status(500).send('Error removing connection');
+        }
+    },
+    getAllUsers: async (req, res) => {
+        const userid = req.params.userid;
+
+        try {
+            const result = await db.query(`
+                SELECT u.id, u.location, u.summary, u.username
+                FROM users u
+                LEFT JOIN connections c
+                    ON (u.id = c.receiverid AND c.giverid = $1)
+                    OR (u.id = c.giverid AND c.receiverid = $1)
+                 WHERE u.id != $1 AND c.id IS NULL
+            `, [userid]);
+
+            res.json(result.rows);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error gettin users data');
         }
     }
 };
