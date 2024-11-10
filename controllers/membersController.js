@@ -536,6 +536,22 @@ const membersController = {
             console.error(err);
             res.status(500).send('Error getting connections data');
         }
+    },
+    removeConnection: async (req, res) => {
+        const { userid, connectionid } = req.params;
+
+        try {
+            await db.query(`
+                DELETE FROM connections
+                WHERE (giverid = $1 AND receiverid = $2)
+                    OR (giverid = $2 AND receiverid = $1);
+            `, [userid, connectionid]);
+
+            res.json({ isDone: true })
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error removing connection');
+        }
     }
 };
 
