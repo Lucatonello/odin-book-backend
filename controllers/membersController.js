@@ -581,7 +581,7 @@ const membersController = {
         const userid = req.params.userid;
         try {
             const result = await db.query(`
-                SELECT u.id, u.username, u.summary
+                SELECT c.id, u.id AS userid, u.username, u.summary
                 FROM connections c
                 JOIN users u ON c.giverid = u.id
                 WHERE c.receiverid = $1 AND c.status = 'pending'
@@ -591,6 +591,23 @@ const membersController = {
         } catch (err) {
             console.error(err);
             res.status(500).send('Error getting connection requests');
+        }
+    },
+    handleConnectionReq: async (req, res) => {
+        const reqid = req.params.reqid;
+        const status = req.params.status;
+
+        try {
+            await db.query(`
+                UPDATE connections
+                SET status = $1
+                WHERE id = $2
+            `, [status, reqid]);
+
+            res.json({ isDone: true });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error updating connection status');
         }
     }
 };
