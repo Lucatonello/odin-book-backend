@@ -29,5 +29,6 @@ membersRouter.post('/connect/:userid/:receiverid', membersController.connect);
 membersRouter.get('/getUserConnections/:userid', membersController.getUserConnections);
 membersRouter.delete('/removeConnection/:userid/:connectionid', membersController.removeConnection);
 membersRouter.get('/getAllUsers/:userid', membersController.getAllUsers);
+membersRouter.get('/getRequests/:userid', membersController.getRequests);
 
 module.exports = { membersRouter };

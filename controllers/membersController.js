@@ -7,14 +7,17 @@ const membersController = {
 
         try {
             const result = await db.query(`
-                SELECT u.*, 
-                    COUNT(CASE WHEN f.receivertype = 'user' THEN f.id END) AS followers_count, 
-                    COUNT(DISTINCT c.receiverid) AS connections_count
-                FROM users u
-                LEFT JOIN follows f ON u.id = f.receiverid 
-                LEFT JOIN connections c ON u.id = c.receiverid
-                WHERE u.id = $1
-                GROUP BY u.id
+                    SELECT u.*, 
+                        COUNT(CASE WHEN f.receivertype = 'user' THEN f.id END) AS followers_count, 
+                        COUNT(DISTINCT CASE
+                            WHEN c.receiverid = u.id AND c.status = 'accepted' THEN c.giverid
+                            WHEN c.giverid = u.id AND c.status = 'accepted' THEN c.receiverid
+                        END) AS connections_count
+                    FROM users u
+                    LEFT JOIN follows f ON u.id = f.receiverid 
+                    LEFT JOIN connections c ON u.id = c.receiverid OR u.id = c.giverid
+                    WHERE u.id = $1
+                    GROUP BY u.id
             `, [id]);
 
             res.json(result.rows[0]);
@@ -508,8 +511,8 @@ const membersController = {
         try {
             await db.query(`
                 INSERT INTO connections
-                (giverid, receiverid)
-                VALUES ($1, $2)
+                (giverid, receiverid, status)
+                VALUES ($1, $2, 'pending')
             `, [userid, receiverid]);
 
             res.json({ isDone: true });
@@ -530,7 +533,7 @@ const membersController = {
                              WHEN c.giverid = $1 THEN c.receiverid
                              WHEN c.receiverid = $1 THEN c.giverid 
                            END
-                WHERE c.giverid = $1 OR c.receiverid = $1
+                WHERE (c.giverid = $1 OR c.receiverid = $1) AND c.status = 'accepted'
             `, [userid]);
 
             res.json(result.rows);
@@ -560,18 +563,34 @@ const membersController = {
 
         try {
             const result = await db.query(`
-                SELECT u.id, u.location, u.summary, u.username
+                SELECT u.id, u.location, u.summary, u.username, c.status
                 FROM users u
                 LEFT JOIN connections c
                     ON (u.id = c.receiverid AND c.giverid = $1)
                     OR (u.id = c.giverid AND c.receiverid = $1)
-                 WHERE u.id != $1 AND c.id IS NULL
+                 WHERE u.id != $1 AND (c.id IS NULL OR c.status = 'pending')
             `, [userid]);
 
             res.json(result.rows);
         } catch (err) {
             console.error(err);
             res.status(500).send('Error gettin users data');
+        }
+    },
+    getRequests: async (req, res) => {
+        const userid = req.params.userid;
+        try {
+            const result = await db.query(`
+                SELECT u.id, u.username, u.summary
+                FROM connections c
+                JOIN users u ON c.giverid = u.id
+                WHERE c.receiverid = $1 AND c.status = 'pending'
+            `, [userid]);
+
+            res.json(result.rows);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error getting connection requests');
         }
     }
 };
