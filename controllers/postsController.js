@@ -136,6 +136,54 @@ const postsController = {
                 res.stats(500).send('error adding post to the db')
             }   
         } 
+    },
+    getMemberNotifications: async (req, res) => {
+        const memberid = req.params.memberid;
+        const type = req.params.type;
+
+        try {
+            const likes = await db.query(`
+                SELECT 
+                    COALESCE(u.id, c.id) AS liker_id,
+                    COALESCE(u.username, c.name) AS liker_name,
+                    u.summary AS liker_summary
+                FROM likes l
+                JOIN posts p ON l.postid = p.id
+                LEFT JOIN users u ON l.authorid = u.id
+                LEFT JOIN companies c ON l.companyid = c.id
+                WHERE ${type === 'user' ? 'p.authorid' : 'p.companyid'} = $1
+                AND (l.authorid IS NOT NULL OR l.companyid IS NOT NULL)
+            `, [memberid]);
+
+            const comments = await db.query(`
+                SELECT 
+                    COALESCE(u.id, co.id) AS commenter_id,
+                    COALESCE(u.username, co.name) AS commenter_name,
+                    u.summary AS commenter_summary
+                FROM comments cmt
+                JOIN posts p ON cmt.postid = p.id
+                LEFT JOIN users u ON cmt.authorid = u.id
+                LEFT JOIN companies co ON cmt.companyid = co.id
+                WHERE ${type === 'user' ? 'p.authorid' : 'p.companyid'} = $1
+                AND (cmt.authorid IS NOT NULL OR cmt.companyid IS NOT NULL)
+            `, [memberid]);
+
+            const follows = await db.query(`
+                SELECT
+                    COALESCE(u.id, c.id) AS follower_id,
+                    COALESCE(u.username, c.name) AS follower_name,
+                    u.summary AS follower_summary
+                FROM follows f
+                LEFT JOIN users u ON f.giverid = u.id AND f.givertype = 'user'
+                LEFT JOIN companies c ON f.giverid = c.id AND f.givertype = 'company'
+                WHERE f.receiverid = $1 AND f.receivertype = ${type === 'user' ? "'user'" : "'company'"}
+            `, [memberid]);
+
+            res.json({ likes: likes.rows, comments: comments.rows, follows: follows.rows });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error getting member notifications');
+        }
     }
 };
 

@@ -2,7 +2,6 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const { authRouter } = require('./routes/auth.js')
-const { indexRouter } = require('./routes/index.js')
 const { postsRouter } = require('./routes/posts.js')
 const { membersRouter } = require('./routes/members.js')
 const { jobsRouter } = require('./routes/jobs.js');
@@ -16,7 +15,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/users', authRouter);
-app.use('/', indexRouter);
 app.use('/posts', postsRouter);
 app.use('/members', membersRouter);
 app.use('/jobs', jobsRouter);

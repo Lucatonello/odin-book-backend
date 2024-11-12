@@ -609,7 +609,7 @@ const membersController = {
             console.error(err);
             res.status(500).send('Error updating connection status');
         }
-    }
+    },
 };
 
 module.exports = { membersController };
