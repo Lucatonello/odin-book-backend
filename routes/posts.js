@@ -8,5 +8,6 @@ postsRouter.post('/addOneLike', postsController.addOneLike);
 postsRouter.post('/addComment', postsController.addComment);
 postsRouter.post('/newPost', postsController.newPost);
 postsRouter.get('/getMemberNotifications/:memberid/:type', postsController.getMemberNotifications)
+postsRouter.get('/getPostData/:postid', postsController.getPostData)
 
 module.exports = { postsRouter };

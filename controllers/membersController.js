@@ -8,7 +8,7 @@ const membersController = {
         try {
             const result = await db.query(`
                     SELECT u.*, 
-                        COUNT(CASE WHEN f.receivertype = 'user' THEN f.id END) AS followers_count, 
+                        COUNT(DISTINCT CASE WHEN f.receivertype = 'user' THEN f.id END) AS followers_count, 
                         COUNT(DISTINCT CASE
                             WHEN c.receiverid = u.id AND c.status = 'accepted' THEN c.giverid
                             WHEN c.giverid = u.id AND c.status = 'accepted' THEN c.receiverid

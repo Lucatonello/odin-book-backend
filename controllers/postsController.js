@@ -33,13 +33,13 @@ const postsController = {
                                     END  
                                 )
                             )
-                FROM comments co
-                    LEFT JOIN users u_comment ON co.authorid = u_comment.id
-                    LEFT JOIN companies c_comment ON co.companyid = c_comment.id
-                    WHERE co.postid = p.id
-                ),
-                '[]'
-                ) AS comments
+                            FROM comments co
+                                LEFT JOIN users u_comment ON co.authorid = u_comment.id
+                                LEFT JOIN companies c_comment ON co.companyid = c_comment.id
+                                WHERE co.postid = p.id
+                            ),
+                        '[]'
+                        ) AS comments
             FROM 
                 posts p
             LEFT JOIN 
@@ -144,9 +144,15 @@ const postsController = {
         try {
             const likes = await db.query(`
                 SELECT 
+                    l.id,
+                    l.postid,
                     COALESCE(u.id, c.id) AS liker_id,
                     COALESCE(u.username, c.name) AS liker_name,
-                    u.summary AS liker_summary
+                    u.summary AS liker_summary,
+                    CASE 
+                        WHEN u.id IS NOT NULL THEN 'user'
+                        WHEN c.id IS NOT NULL THEN 'company'
+                    END AS liker_type
                 FROM likes l
                 JOIN posts p ON l.postid = p.id
                 LEFT JOIN users u ON l.authorid = u.id
@@ -157,9 +163,15 @@ const postsController = {
 
             const comments = await db.query(`
                 SELECT 
+                    cmt.id,
+                    cmt.postid,
                     COALESCE(u.id, co.id) AS commenter_id,
                     COALESCE(u.username, co.name) AS commenter_name,
-                    u.summary AS commenter_summary
+                    u.summary AS commenter_summary,
+                    CASE 
+                        WHEN u.id IS NOT NULL THEN 'user'
+                        WHEN co.id IS NOT NULL THEN 'company'
+                    END AS commenter_type
                 FROM comments cmt
                 JOIN posts p ON cmt.postid = p.id
                 LEFT JOIN users u ON cmt.authorid = u.id
@@ -171,6 +183,10 @@ const postsController = {
             const follows = await db.query(`
                 SELECT
                     COALESCE(u.id, c.id) AS follower_id,
+                    CASE 
+                        WHEN u.id IS NOT NULL THEN 'user'
+                        WHEN c.id IS NOT NULL THEN 'company'
+                    END AS follower_type,
                     COALESCE(u.username, c.name) AS follower_name,
                     u.summary AS follower_summary
                 FROM follows f
@@ -183,6 +199,69 @@ const postsController = {
         } catch (err) {
             console.error(err);
             res.status(500).send('Error getting member notifications');
+        }
+    },
+    getPostData: async (req, res) => {
+        const postid = req.params.postid;
+
+        try {
+            const result = await db.query(`
+                SELECT 
+                    p.id,
+                    p.text AS text,
+                    COALESCE(u.username, c.name) AS author_name,
+                    u.summary AS author_summary,
+                    COALESCE(u.id, c.id) AS author_id,
+                    
+                    CASE 
+                        WHEN u.id IS NOT NULL THEN 'user'
+                        ELSE 'company'
+                    END AS type,   
+
+                    p.date AS post_date,
+                    COUNT(DISTINCT l.id) AS total_likes,
+                    COALESCE(
+                        (
+                            SELECT JSON_AGG(
+                                JSON_BUILD_OBJECT(
+                                    'authorName', COALESCE(u_comment.username, c_comment.name),
+                                    'authorSummary', u_comment.summary,
+                                    'text', co.text,
+                                    'postid', co.postid,
+                                    'authorid', COALESCE(u_comment.id, c_comment.id),
+                                    'type', CASE 
+                                        WHEN u_comment.id IS NOT NULL THEN 'user'
+                                        ELSE 'company'
+                                    END  
+                                )
+                            )
+                                FROM comments co
+                                    LEFT JOIN users u_comment ON co.authorid = u_comment.id
+                                    LEFT JOIN companies c_comment ON co.companyid = c_comment.id
+                                    WHERE co.postid = p.id
+                                ),
+                            '[]'
+                            ) AS comments
+                FROM 
+                    posts p
+                LEFT JOIN 
+                    users u ON p.authorid = u.id
+                LEFT JOIN 
+                    companies c ON p.companyid = c.id
+                LEFT JOIN 
+                    likes l ON l.postid = p.id
+                WHERE
+                    p.id = $1
+                GROUP BY 
+                    p.id, p.text, u.username, c.name, u.id, c.id, p.date, u.summary
+                ORDER BY 
+                    p.date DESC;
+            `, [postid]);
+
+            res.json(result.rows);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error getting post data');
         }
     }
 };
