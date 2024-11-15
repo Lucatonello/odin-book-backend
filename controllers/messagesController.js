@@ -11,10 +11,19 @@ const messagesController = {
                         WHEN messages.senderid = $1 THEN receiver.username
                         ELSE sender.username
                     END AS contact_username,
-                    CASE 
-                        WHEN messages.senderid = $1 THEN receiver.id
-                        ELSE sender.id
-                    END AS contact_id,
+
+                    (SELECT senderid 
+                    FROM messages 
+                    WHERE (senderid = $1 OR receiverid = $1) 
+                    ORDER BY id ASC 
+                    LIMIT 1) AS first_sender_id,
+
+                    (SELECT receiverid 
+                    FROM messages 
+                    WHERE (senderid = $1 OR receiverid = $1) 
+                    ORDER BY id ASC 
+                    LIMIT 1) AS first_receiver_id,
+
                     messages.text AS last_message,
                     messages.id 
                 FROM messages
@@ -32,7 +41,8 @@ const messagesController = {
         }
     },
     getChatDetails: async (req, res) => {
-        const chatid = req.params.chatid;
+        const chatid1 = req.params.chatId1;
+        const chatid2 = req.params.chatId2;
 
         try {
             const result = await db.query(`
@@ -42,13 +52,34 @@ const messagesController = {
                     m.*
                 FROM messages m
                 JOIN users u ON m.senderid = u.id
-                WHERE m.id = $1
-            `, [chatid]);
+                WHERE 
+                    (LEAST (m.senderid, m.receiverid) = $1 AND GREATEST (m.senderid, m.receiverid) = $2)
+                ORDER BY m.id ASC
+            `, [chatid1, chatid2]);
 
             res.json(result.rows);
         } catch (err) {
             console.error(err);
             res.status(500).send('Error getting chat messages');
+        }
+    },
+    sendMessage: async (req, res) => {
+        const senderid = req.params.senderid;
+        const receiverid = req.params.receiverid;
+
+        const text = req.body.newMessage;
+
+        try {
+            const result = await db.query(`
+                INSERT INTO messages
+                (senderid, receiverid, text)
+                VALUES ($1, $2, $3)
+            `, [senderid, receiverid, text]);
+
+            res.json({ isDone: true, newMessage: text });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send('Error sending message');
         }
     }
 }
