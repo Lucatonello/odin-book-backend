@@ -509,6 +509,17 @@ const membersController = {
         }
 
         try {
+            const existingRequest = await db.query(`
+                SELECT * 
+                FROM requests 
+                WHERE (giverid = $1 AND receiverid = $2)
+                   OR (giverid = $2 AND receiverid = $1);
+            `, [giverid, receiverid]);
+
+            if (existingRequest.rows.length > 0) {
+                res.status(500).send('A request already exists betweem this users')
+            }
+
             await db.query(`
                 INSERT INTO connections
                 (giverid, receiverid, status)

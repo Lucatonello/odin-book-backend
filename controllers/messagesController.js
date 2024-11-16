@@ -6,32 +6,27 @@ const messagesController = {
 
         try {
             const result = await db.query(`
-                SELECT 
-                    CASE 
-                        WHEN messages.senderid = $1 THEN receiver.username
-                        ELSE sender.username
-                    END AS contact_username,
+                SELECT DISTINCT ON (LEAST(m.senderid, m.receiverid), GREATEST(m.senderid, m.receiverid)) 
+                    m.id, 
+                    m.senderid, 
+                    m.receiverid, 
+                    m.text as last_message, 
+                    u.username AS contact_username,
 
                     (SELECT senderid 
                     FROM messages 
                     WHERE (senderid = $1 OR receiverid = $1) 
                     ORDER BY id ASC 
-                    LIMIT 1) AS first_sender_id,
+                    LIMIT 1) AS first_sender_id
 
-                    (SELECT receiverid 
-                    FROM messages 
-                    WHERE (senderid = $1 OR receiverid = $1) 
-                    ORDER BY id ASC 
-                    LIMIT 1) AS first_receiver_id,
-
-                    messages.text AS last_message,
-                    messages.id 
-                FROM messages
-                JOIN users AS sender ON messages.senderid = sender.id
-                JOIN users AS receiver ON messages.receiverid = receiver.id
-                WHERE $1 IN (messages.senderid, messages.receiverid)
-                ORDER BY messages.id DESC
-                LIMIT 1;
+                FROM messages m
+                JOIN users u 
+                    ON u.id = CASE 
+                                WHEN m.senderid = $1 THEN m.receiverid 
+                                ELSE m.senderid 
+                            END
+                WHERE m.senderid = $1 OR m.receiverid = $1
+                ORDER BY LEAST(m.senderid, m.receiverid), GREATEST(m.senderid, m.receiverid), m.id DESC;
             `, [userid]);
 
             res.json(result.rows);
@@ -42,20 +37,35 @@ const messagesController = {
     },
     getChatDetails: async (req, res) => {
         const chatid1 = req.params.chatId1;
-        const chatid2 = req.params.chatId2;
-
+        
         try {
             const result = await db.query(`
-                SELECT 
-                    u.username,
-                    u.summary,
-                    m.*
-                FROM messages m
-                JOIN users u ON m.senderid = u.id
-                WHERE 
-                    (LEAST (m.senderid, m.receiverid) = $1 AND GREATEST (m.senderid, m.receiverid) = $2)
-                ORDER BY m.id ASC
-            `, [chatid1, chatid2]);
+               SELECT 
+                    CASE 
+                        WHEN messages.senderid = $1 THEN receiver.username
+                        ELSE sender.username
+                    END AS contact_username,
+                    CASE 
+                        WHEN messages.senderid = $1 THEN messages.receiverid
+                        ELSE messages.senderid
+                    END AS contact_id,
+                    messages.text AS last_message,
+                    messages.id AS last_message_id
+                FROM (
+                    SELECT DISTINCT ON (
+                        LEAST(senderid, receiverid), 
+                        GREATEST(senderid, receiverid)
+                    ) *
+                    FROM messages
+                    WHERE $1 IN (senderid, receiverid)
+                    ORDER BY LEAST(senderid, receiverid), 
+                            GREATEST(senderid, receiverid), 
+                            id DESC
+                ) AS messages
+                JOIN users AS sender ON messages.senderid = sender.id
+                JOIN users AS receiver ON messages.receiverid = receiver.id
+                ORDER BY messages.id DESC;
+            `, [chatid1]);
 
             res.json(result.rows);
         } catch (err) {
