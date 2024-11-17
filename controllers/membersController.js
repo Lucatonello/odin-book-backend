@@ -139,7 +139,7 @@ const membersController = {
                 WHERE id = $${fields.length + 1}               
             `, [...values, id]);
 
-            res.json({ message: 'updated succesfully' });
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error updating intro')
@@ -156,7 +156,7 @@ const membersController = {
                 WHERE id = $2
             `, [newAbout, id]);
 
-            res.json({ message: 'About updated succesfully'})
+            res.json({ isDone: true });
         } catch (err) {
             console.erro(err)
             res.status(500).send('Error updating user about')
@@ -213,6 +213,8 @@ const membersController = {
                 (${fields.toString()})
                 VALUES (${formatedValues})
             `);
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error inserting experience to the database');
@@ -249,6 +251,8 @@ const membersController = {
                 WHERE id = ${expid}
 
             `, [...values])
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error updating experience database');
@@ -299,6 +303,8 @@ const membersController = {
                 (${fields.toString()})
                 VALUES (${formatedValues})
             `);
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error inserting education to the database');
@@ -334,6 +340,8 @@ const membersController = {
                 ${formatedFields}
                 WHERE id = ${educationid}
             `, [...values]);
+
+            res.json({ isDone: true });
         } catch(err) {
             console.error(err);
             res.staus(500).send('Error updating education database');
@@ -362,6 +370,8 @@ const membersController = {
                 skills (userid, skill)
                 VALUES ($1, $2)
             `, [userid, skill]);
+
+            res.json({ isDone: true });
         } catch(err) {
             console.error(err);
             res.status(500).send('Error adding skill to database');
@@ -376,6 +386,8 @@ const membersController = {
                 skills
                 WHERE id = $1    
             `, [skillid]);
+
+            res.json({ isDone: true });
         } catch(err) {
             console.error(err);
             res.status(500).send('Error deleting skill from database');
@@ -516,10 +528,10 @@ const membersController = {
         try {
             const existingRequest = await db.query(`
                 SELECT * 
-                FROM requests 
+                FROM connections 
                 WHERE (giverid = $1 AND receiverid = $2)
                    OR (giverid = $2 AND receiverid = $1);
-            `, [giverid, receiverid]);
+            `, [userid, receiverid]);
 
             if (existingRequest.rows.length > 0) {
                 res.status(500).send('A request already exists betweem this users')

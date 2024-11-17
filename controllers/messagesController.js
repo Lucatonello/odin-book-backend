@@ -34,7 +34,7 @@ const messagesController = {
         
         try {
             const result = await db.query(`
-               SELECT m.id, m.text, m.senderid, m.receiverid, u.username
+               SELECT m.id, m.text, m.senderid, m.receiverid, u.username, u.id AS contact_id
                FROM messages m
                JOIN users u ON m.senderid = u.id
                WHERE 

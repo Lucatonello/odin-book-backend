@@ -2,6 +2,8 @@ const db = require('../db/pool');
 
 const postsController = {
     getAllPosts: async (req, res) => {
+        const userid = req.params.userid;
+
         try {
             const result = await db.query(`
                 SELECT 
@@ -18,6 +20,17 @@ const postsController = {
 
                     p.date AS post_date,
                     COUNT(DISTINCT l.id) AS total_likes,
+
+                    CASE 
+                        WHEN EXISTS (
+                            SELECT 1 
+                            FROM likes l_check 
+                            WHERE l_check.postid = p.id 
+                            AND (l_check.authorid = $1 OR l_check.companyid = $1)
+                        ) THEN true
+                        ELSE false
+                    END AS has_liked,
+
                     COALESCE(
                         (
                             SELECT JSON_AGG(
@@ -52,7 +65,7 @@ const postsController = {
                 p.id, p.text, u.username, c.name, u.id, c.id, p.date, u.summary
             ORDER BY 
                 p.date DESC;
-            `);
+            `, [userid]);
             res.json(result.rows);
         } catch (err) {
             console.error(err);
@@ -74,6 +87,8 @@ const postsController = {
                 (${idColumn}, postid)
                 VALUES ($1, $2)
             `, [id, postid]);
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error adding like');
@@ -203,6 +218,7 @@ const postsController = {
     },
     getPostData: async (req, res) => {
         const postid = req.params.postid;
+        const userid = req.params.userid;
 
         try {
             const result = await db.query(`
@@ -220,6 +236,17 @@ const postsController = {
 
                     p.date AS post_date,
                     COUNT(DISTINCT l.id) AS total_likes,
+
+                    CASE 
+                        WHEN EXISTS (
+                            SELECT 1 
+                            FROM likes l_check 
+                            WHERE l_check.postid = p.id 
+                            AND (l_check.authorid = $2 OR l_check.companyid = $2)
+                        ) THEN true
+                        ELSE false
+                    END AS has_liked,
+
                     COALESCE(
                         (
                             SELECT JSON_AGG(
@@ -256,7 +283,7 @@ const postsController = {
                     p.id, p.text, u.username, c.name, u.id, c.id, p.date, u.summary
                 ORDER BY 
                     p.date DESC;
-            `, [postid]);
+            `, [postid, userid]);
 
             res.json(result.rows);
         } catch (err) {

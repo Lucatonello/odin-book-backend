@@ -100,6 +100,8 @@ const jobsController = {
                 (jobid, userid, email, number, cv)
                 VALUES ($1, $2, $3, $4, $5)
             `, [jobid, userid, email, number, cv.filename]);
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error adding candidate to the database');
