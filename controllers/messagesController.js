@@ -8,17 +8,10 @@ const messagesController = {
             const result = await db.query(`
                 SELECT DISTINCT ON (LEAST(m.senderid, m.receiverid), GREATEST(m.senderid, m.receiverid)) 
                     m.id, 
-                    m.senderid, 
-                    m.receiverid, 
+                    m.senderid AS first_sender_id, 
+                    m.receiverid AS first_receiver_id, 
                     m.text as last_message, 
-                    u.username AS contact_username,
-
-                    (SELECT senderid 
-                    FROM messages 
-                    WHERE (senderid = $1 OR receiverid = $1) 
-                    ORDER BY id ASC 
-                    LIMIT 1) AS first_sender_id
-
+                    u.username AS contact_username
                 FROM messages m
                 JOIN users u 
                     ON u.id = CASE 
@@ -37,35 +30,19 @@ const messagesController = {
     },
     getChatDetails: async (req, res) => {
         const chatid1 = req.params.chatId1;
+        const chatid2 = req.params.chatid2;
         
         try {
             const result = await db.query(`
-               SELECT 
-                    CASE 
-                        WHEN messages.senderid = $1 THEN receiver.username
-                        ELSE sender.username
-                    END AS contact_username,
-                    CASE 
-                        WHEN messages.senderid = $1 THEN messages.receiverid
-                        ELSE messages.senderid
-                    END AS contact_id,
-                    messages.text AS last_message,
-                    messages.id AS last_message_id
-                FROM (
-                    SELECT DISTINCT ON (
-                        LEAST(senderid, receiverid), 
-                        GREATEST(senderid, receiverid)
-                    ) *
-                    FROM messages
-                    WHERE $1 IN (senderid, receiverid)
-                    ORDER BY LEAST(senderid, receiverid), 
-                            GREATEST(senderid, receiverid), 
-                            id DESC
-                ) AS messages
-                JOIN users AS sender ON messages.senderid = sender.id
-                JOIN users AS receiver ON messages.receiverid = receiver.id
-                ORDER BY messages.id DESC;
-            `, [chatid1]);
+               SELECT m.id, m.text, m.senderid, m.receiverid, u.username
+               FROM messages m
+               JOIN users u ON m.senderid = u.id
+               WHERE 
+                   (m.senderid = $1 AND m.receiverid = $2)
+                OR
+                   (m.senderid = $2 AND m.receiverid = $1)
+                ORDER BY m.id
+            `, [chatid1, chatid2]);
 
             res.json(result.rows);
         } catch (err) {

@@ -462,13 +462,18 @@ const membersController = {
             const resultFollow = await db.query(`
                 SELECT *
                 FROM follows
-                WHERE giverid = $1 AND receiverid = $2 AND givertype = $3 AND receivertype = $4
+                WHERE 
+                    (giverid = $1 AND receiverid = $2) OR (giverid = $2 AND receiverid = $1)
+                    AND givertype = $3 AND receivertype = $4
             `, [userid, memberid, usertype, membertype]);
 
             const resultConnection = await db.query(`
                 SELECT * 
                 FROM connections 
-                WHERE giverid = $1 AND receiverid = $2
+                WHERE 
+                    (giverid = $1 AND receiverid = $2)
+                OR
+                    (giverid = $2 AND receiverid = $1)
             `, [userid, memberid]);
 
             if (resultFollow.rows.length > 0 && resultConnection.rows.length > 0) {
