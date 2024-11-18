@@ -1,13 +1,14 @@
 const express = require('express');
-const postsRouter = express.Router()
+const postsRouter = express.Router();
 const path = require('path');
 const { postsController } = require('../controllers/postsController');
+const { verifyToken } = require('../controllers/authController');
 
-postsRouter.get('/getAllPosts/:userid', postsController.getAllPosts);
-postsRouter.post('/addOneLike', postsController.addOneLike);
-postsRouter.post('/addComment', postsController.addComment);
-postsRouter.post('/newPost', postsController.newPost);
-postsRouter.get('/getMemberNotifications/:memberid/:type', postsController.getMemberNotifications)
-postsRouter.get('/getPostData/:postid/:userid', postsController.getPostData)
+postsRouter.get('/getAllPosts/:userid', verifyToken, postsController.getAllPosts);
+postsRouter.post('/addOneLike', verifyToken, postsController.addOneLike);
+postsRouter.post('/addComment', verifyToken, postsController.addComment);
+postsRouter.post('/newPost', verifyToken, postsController.newPost);
+postsRouter.get('/getMemberNotifications/:memberid/:type', verifyToken, postsController.getMemberNotifications)
+postsRouter.get('/getPostData/:postid/:userid', verifyToken, postsController.getPostData)
 
 module.exports = { postsRouter };
