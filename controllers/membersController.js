@@ -40,7 +40,7 @@ const membersController = {
                 FROM companies c
                 LEFT JOIN follows f ON c.id = f.receiverid AND f.receivertype = 'company'
                 WHERE c.id = $1
-                GROUP BY c.id
+                GROUP BY c.id, c.name
             `, [id]);
 
             res.json(result.rows[0]);
