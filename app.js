@@ -4,11 +4,14 @@ const app = express();
 const { authRouter } = require('./routes/auth.js')
 const { postsRouter } = require('./routes/posts.js')
 const { membersRouter } = require('./routes/members.js')
+require('dotenv').config();
 const { jobsRouter } = require('./routes/jobs.js');
 const { messagesRouter } = require('./routes/messages.js');
 
 const cors = require('cors');
 const PORT = process.env.PORT || 10000;
+
+console.log("Database URL:", process.env.DATABASE_URL);
 
 app.use(cors());
 app.use(express.json());
