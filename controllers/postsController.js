@@ -141,6 +141,7 @@ const postsController = {
                     (text, authorid)
                     VALUES ($1, $2)
                 `, [newPost, id]);
+                res.json({ isDone: true });
             } catch (err) {
                 console.error(err);
                 res.status(500).send('error adding post to the db')
@@ -151,7 +152,8 @@ const postsController = {
                     INSERT INTO posts
                     (text, companyid)
                     VALUES ($1, $2)
-                `, [newPost, id])
+                `, [newPost, id]);
+                res.json({ isDone: true });
             } catch (err) {
                 console.error(err);
                 res.status(500).send('error adding post to the db')
