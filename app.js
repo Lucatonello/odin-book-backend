@@ -1,10 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const app = express();
 const { authRouter } = require('./routes/auth.js')
 const { postsRouter } = require('./routes/posts.js')
 const { membersRouter } = require('./routes/members.js')
-require('dotenv').config();
 const { jobsRouter } = require('./routes/jobs.js');
 const { messagesRouter } = require('./routes/messages.js');
 
