@@ -109,6 +109,8 @@ const postsController = {
                     (text, authorid, companyid, postid)
                     VALUES ($1, $2, NULL, $3)
                 `, [newComment, id, postid])
+
+                res.json({ isDone: true });
             } catch (err) {
                 console.error(err);
                 res.status(500).send('error adding comment to the db')
@@ -119,7 +121,9 @@ const postsController = {
                     INSERT INTO comments
                     (text, authorid, companyid, postid)
                     VALUES ($1, NULL, $2, $3)
-                `, [newComment, id, postid])
+                `, [newComment, id, postid]);
+
+                res.json({ isDone: true });
             } catch (err) {
                 console.error(err);
                 res.status(500).send('error adding comment to the db')
