@@ -53,14 +53,15 @@ const jobsController = {
     newJobPost: async (req, res) => {
         const id = req.params.companyid;
         const {
-                title,
+            title,
             area,
             jobType,
             expLevel,
             salary,
             location,
             isPublic,
-            description
+            description,
+            skills
         } = req.body;
 
         const queryTop = 'INSERT INTO jobs';
@@ -83,7 +84,9 @@ const jobsController = {
                 ${queryTop}
                 (${fields.toString()})
                 VALUES (${formattedValues})
-            `)
+            `);
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error adding new job to the database');

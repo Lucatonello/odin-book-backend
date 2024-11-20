@@ -101,6 +101,8 @@ const authController = {
 
             if (type === 'user') {
                 const { username, password, summary, location, website } = req.body;
+                console.log(req.body);
+                console.log(type);
                 const hashedPassword = await bcrypt.hash(password, 10);
 
                 try {
@@ -111,11 +113,13 @@ const authController = {
                     res.status(500).json({ message: 'Failed to create user' });
                 }
             } else if (type === 'company') {
-                const { name, password, area, location, summary, website } = req.body;
+                const { name, password, area, location, website } = req.body;
+                console.log(req.body);
+                console.log(type);
                 const hashedPassword = await bcrypt.hash(password, 10);
 
                 try {
-                    await authQueries.signupCompany(name, hashedPassword, area, location, summary, website);
+                    await authQueries.signupCompany(name, hashedPassword, area, location, website);
                     res.status(200).json({ message: 'Company created' });
                 } catch (err) {
                     console.error(err);

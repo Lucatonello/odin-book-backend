@@ -31,5 +31,5 @@ membersRouter.get('/getUserConnections/:userid', verifyToken, membersController.
 membersRouter.delete('/removeConnection/:userid/:connectionid', verifyToken, membersController.removeConnection);
 membersRouter.get('/getAllUsers/:userid', verifyToken, membersController.getAllUsers);
 membersRouter.get('/getRequests/:userid', verifyToken, membersController.getRequests);
-membersRouter.post('/handleConnectionReq/:reqid/:status', verifyToken, membersController.handleConnectionReq)
+membersRouter.post('/handleConnectionReq/:reqid/:status', verifyToken, membersController.handleConnectionReq);
 module.exports = { membersRouter };

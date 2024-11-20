@@ -12,7 +12,7 @@ exports.signupUser = async (username, hashedPassword, summary, location, website
 exports.signupCompany = async (name, hashedPassword, area, location, summary, website) => {
     const result = await db.query(`
         INSERT INTO companies
-        (name, password, area, location, summary, website)
-        VALUES ($1, $2, $3, $4, $5, $6)    
-    `, [name, hashedPassword, area, location, summary, website])
+        (name, password, area, location, website)
+        VALUES ($1, $2, $3, $4, $5)    
+    `, [name, hashedPassword, area, location, website])
 }

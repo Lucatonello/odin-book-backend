@@ -3,6 +3,7 @@ const db = require('../db/pool');
 const postsController = {
     getAllPosts: async (req, res) => {
         const userid = req.params.userid;
+        const type = req.params.type;
 
         try {
             const result = await db.query(`
@@ -26,7 +27,10 @@ const postsController = {
                             SELECT 1 
                             FROM likes l_check 
                             WHERE l_check.postid = p.id 
-                            AND (l_check.authorid = $1 OR l_check.companyid = $1)
+                            AND (
+                                ($2 = 'user' AND l_check.authorid = $1) OR 
+                                ($2 = 'company' AND l_check.companyid = $1)
+                            )
                         ) THEN true
                         ELSE false
                     END AS has_liked,
@@ -65,7 +69,7 @@ const postsController = {
                 p.id, p.text, u.username, c.name, u.id, c.id, p.date, u.summary
             ORDER BY 
                 p.date DESC;
-            `, [userid]);
+            `, [userid, type]);
             res.json(result.rows);
         } catch (err) {
             console.error(err);
@@ -96,6 +100,8 @@ const postsController = {
     },
     addComment: async (req, res) => {
         const {newComment, id, postid, type} = req.body;
+
+        console.log('')
         if (type == 'user') {
             try {
                 await db.query(`
@@ -105,18 +111,18 @@ const postsController = {
                 `, [newComment, id, postid])
             } catch (err) {
                 console.error(err);
-                res.stats(500).send('error adding comment to the db')
+                res.status(500).send('error adding comment to the db')
             }
         } else if (type == 'company') {
             try {
                 await db.query(`
                     INSERT INTO comments
-                    (text, authorid companyid, postid)
+                    (text, authorid, companyid, postid)
                     VALUES ($1, NULL, $2, $3)
                 `, [newComment, id, postid])
             } catch (err) {
                 console.error(err);
-                res.stats(500).send('error adding comment to the db')
+                res.status(500).send('error adding comment to the db')
             }
         }
     },
@@ -137,7 +143,7 @@ const postsController = {
                 `, [newPost, id]);
             } catch (err) {
                 console.error(err);
-                res.stats(500).send('error adding post to the db')
+                res.status(500).send('error adding post to the db')
             }
         } else if (type == 'company') {
             try {
@@ -148,7 +154,7 @@ const postsController = {
                 `, [newPost, id])
             } catch (err) {
                 console.error(err);
-                res.stats(500).send('error adding post to the db')
+                res.status(500).send('error adding post to the db')
             }   
         } 
     },
@@ -219,6 +225,7 @@ const postsController = {
     getPostData: async (req, res) => {
         const postid = req.params.postid;
         const userid = req.params.userid;
+        const type = req.params.type;
 
         try {
             const result = await db.query(`
@@ -242,7 +249,10 @@ const postsController = {
                             SELECT 1 
                             FROM likes l_check 
                             WHERE l_check.postid = p.id 
-                            AND (l_check.authorid = $2 OR l_check.companyid = $2)
+                            AND (
+                                ($3 = 'user' AND l_check.authorid = $2) OR 
+                                ($3 = 'company' AND l_check.companyid = $2)
+                            )
                         ) THEN true
                         ELSE false
                     END AS has_liked,
@@ -283,7 +293,7 @@ const postsController = {
                     p.id, p.text, u.username, c.name, u.id, c.id, p.date, u.summary
                 ORDER BY 
                     p.date DESC;
-            `, [postid, userid]);
+            `, [postid, userid, type]);
 
             res.json(result.rows);
         } catch (err) {

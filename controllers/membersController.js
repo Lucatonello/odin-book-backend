@@ -172,6 +172,8 @@ const membersController = {
                 SET about = $1
                 WHERE id = $2
             `, [newAbout, companyid]);
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error updating company about');
@@ -438,15 +440,16 @@ const membersController = {
     },
     changeJobStatus: async (req, res) => {
         const id = req.params.id;
-        let status = req.body.status;
+        const { status } = req.body;
 
-        status == true ? status = false : status = true;
         try {
             await db.query(`
                 UPDATE jobs 
                 SET public = $1
                 WHERE id = $2
             `, [status, id]);
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error changing job status');
@@ -462,6 +465,8 @@ const membersController = {
                 (giverid, receiverid, givertype, receivertype)
                 VALUES ($1, $2, $3, $4)
             `, [userid, receiverid, userType, type]);
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error adding follow');
@@ -512,6 +517,8 @@ const membersController = {
                 DELETE FROM follows
                 WHERE giverid = $1 AND receiverid = $2 AND givertype = $3 AND receivertype = $4
             `, [userid, receiverid, userType, type]);
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Erro removing follow');
@@ -609,7 +616,7 @@ const membersController = {
         const userid = req.params.userid;
         try {
             const result = await db.query(`
-                SELECT c.id, u.id AS userid, u.username, u.summary
+                SELECT c.id, c.status, u.id AS userid, u.username, u.summary
                 FROM connections c
                 JOIN users u ON c.giverid = u.id
                 WHERE c.receiverid = $1 AND c.status = 'pending'
