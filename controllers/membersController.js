@@ -433,6 +433,8 @@ const membersController = {
                 ${formatedFields}
                 WHERE id = $${fields.length + 1}         
             `, [...values, id]);
+
+            res.json({ isDone: true });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error updating company intro');
