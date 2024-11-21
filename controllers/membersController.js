@@ -474,13 +474,13 @@ const membersController = {
     },
     checkFollow: async (req, res) => {
         const { userid, memberid, usertype, membertype } = req.params;
-
+        console.log('userid, memberid, usertype, membertype', )
         try {
             const resultFollow = await db.query(`
                 SELECT *
                 FROM follows
                 WHERE 
-                    (giverid = $1 AND receiverid = $2) OR (giverid = $2 AND receiverid = $1)
+                    ((giverid = $1 AND receiverid = $2 AND) OR (giverid = $2 AND receiverid = $1))
                     AND givertype = $3 AND receivertype = $4
             `, [userid, memberid, usertype, membertype]);
 
@@ -492,6 +492,8 @@ const membersController = {
                 OR
                     (giverid = $2 AND receiverid = $1)
             `, [userid, memberid]);
+
+            console.log('restult follow: ', resultFollow)
 
             if (resultFollow.rows.length > 0 && resultConnection.rows.length > 0) {
                 res.json({ isFollowing: true, isConnected: true });
