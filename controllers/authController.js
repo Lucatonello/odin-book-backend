@@ -30,9 +30,11 @@ function verifyToken(req, res, next) {
 const authController = {
     login: async (req, res) => {
         const type = req.body.type;
+        console.log('type: ', type);
 
         if (type === 'user') {
             const { username, password } = req.body;
+            console.log('username and password: ', username, password);
             try {
                 const result = await db.query(`SELECT * FROM users WHERE username = $1`, [username]);
 
@@ -63,6 +65,8 @@ const authController = {
             }
         } else if (type === 'company') {
             const { companyName, companyPassword } = req.body;
+            console.log('companyName and companyPassword: ', companyName, companyPassword);
+
             try {
                 const result = await db.query(`SELECT * FROM companies WHERE name = $1`, [companyName]);
 
