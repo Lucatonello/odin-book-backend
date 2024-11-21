@@ -480,7 +480,7 @@ const membersController = {
                 SELECT *
                 FROM follows
                 WHERE 
-                    ((giverid = $1 AND receiverid = $2 AND) OR (giverid = $2 AND receiverid = $1))
+                    ((giverid = $1 AND receiverid = $2) OR (giverid = $2 AND receiverid = $1))
                     AND givertype = $3 AND receivertype = $4
             `, [userid, memberid, usertype, membertype]);
 
