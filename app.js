@@ -13,7 +13,13 @@ const PORT = process.env.PORT || 10000;
 
 console.log("Database URL:", process.env.DATABASE_URL);
 
-app.use(cors());
+const allowedOrigins = ['https://serene-liger-43f45f.netlify.app'];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
