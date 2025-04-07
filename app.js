@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 10000;
 
 console.log("Database URL:", process.env.DATABASE_URL);
 
-const allowedOrigins = ['https://serene-liger-43f45f.netlify.app'];
+const allowedOrigins = ['https://serene-liger-43f45f.netlify.app', 'http://localhost:5173'];
 
 app.use(cors({
   origin: allowedOrigins,
